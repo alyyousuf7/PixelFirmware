@@ -1,0 +1,19 @@
+# Object files.
+*.o
+*.o.lst
+
+# Map files.
+*.map
+
+# Various output files
+*.srec
+*.dump
+
+# Library (archive) files.
+*.a
+
+# GCC ARM Toolchain
+gcc-arm*
+
+# IDE
+.vscode
