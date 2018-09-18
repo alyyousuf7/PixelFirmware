@@ -19,7 +19,7 @@ CFLAGS = -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" \
 		-fmessage-length=0 $(TARGET) -mthumb -mfloat-abi=soft \
 		$(DEBUG_OPTS) $(OPTS) -I .
 
-LIBOBJS = _startup.o syscalls.o uart.o delay.o ring.o
+LIBOBJS = _startup.o syscalls.o uart.o spi.o delay.o ring.o
 
 .PHONY:	clean
 

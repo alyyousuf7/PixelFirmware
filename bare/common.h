@@ -17,6 +17,12 @@ int uart_write_err(char *p, int len);
 int uart_read(char *p, int len);
 void uart_init(int baud_rate);
 
+// From spi.c
+void SPI0_IRQHandler() __attribute__((interrupt("IRQ")));
+void spi_write(char *p, int len);
+void spi_read(char *p, int len);
+void spi_init(void);
+
 // From delay.c
 void delay(unsigned int ms);
 
