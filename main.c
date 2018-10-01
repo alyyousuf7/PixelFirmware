@@ -1,5 +1,5 @@
 //
-// firmware.c -- Firmware for PixelBox
+// main.c -- Firmware for PixelDisplay
 //
 //  Copyright (c) 2018 Ali Yousuf <aly.yousuf7@gmail.com>
 //
@@ -7,14 +7,12 @@
 #include <stdio.h>
 #include "freedom.h"
 #include "common.h"
+#include "display.h"
 
 extern char *_sbrk(int len);
 
 // Main program
 int main(void) {
-    char i;
-    char *heap_end;
-
     // Initialize all modules
     uart_init(115200);
     setvbuf(stdin, NULL, _IONBF, 0);        // No buffering
@@ -31,20 +29,16 @@ int main(void) {
     }
     RGB_LED(0, 0, 0); // OFF
 
-    // Welcome banner
     iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
-    iprintf("Built: %s %s\r\n\r\n", __DATE__, __TIME__);
-    heap_end = _sbrk(0);
-    iprintf("Reset code: 0x%02x 0x%02x\r\n", RCM_SRS0, RCM_SRS1);
-    iprintf("Heap:  %p to %p (%d bytes used)\r\n", __heap_start, heap_end,
-                heap_end - (char *)__heap_start);
-    iprintf("Stack: %p to %p (%d bytes used)\r\n", &i, __StackTop,
-                (char *)__StackTop - &i);
-    iprintf("%d bytes free\r\n", &i - heap_end);
+    iprintf("PixelDisplay\r\n");
 
-    for(;;) {
-        iprintf("monitor> ");
-        getchar();
-        iprintf("\r\n");
+    // Initialize LED Pins
+    InitDisplay();
+
+    while (1) {
+        RGB_LED(0, 0, 100);
+        delay(500);
+        RGB_LED(0, 0, 0);
+        delay(500);
     }
 }

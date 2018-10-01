@@ -14,7 +14,7 @@ OBJDUMP = $(GCCDIR)arm-none-eabi-objdump
 
 BARE_DIR = bare
 BARE_PATH = $(BARE_DIR)/libbare.a
-EXEC = firmware
+PROGRAM = PixelDisplay
 
 DEBUG_OPTS = -g3 -gdwarf-2 -gstrict-dwarf
 OPTS = -Os
@@ -23,14 +23,18 @@ CFLAGS = -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" \
 		-fmessage-length=0 $(TARGET) -mthumb -mfloat-abi=soft \
 		$(DEBUG_OPTS) $(OPTS) -I . -I $(BARE_DIR)
 
+OBJECTS += main.o
+OBJECTS += display.o
+OBJECTS += gamma.o
+
 .PHONY: clean deploy
 
 # -----------------------------------------------------------------------------
 
-all: $(EXEC).srec $(EXEC).dump
+all: $(PROGRAM).srec $(PROGRAM).bin $(PROGRAM).dump
 
 clean:
-	rm -f *.o *.lst *.map *.out *.srec *.dump
+	rm -f *.o *.lst *.map *.out *.srec *.bin *.dump
 	make -C $(BARE_DIR) clean
 
 $(BARE_PATH):
@@ -39,18 +43,21 @@ $(BARE_PATH):
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
-%.dump: %.out
+$(PROGRAM).dump: $(PROGRAM).out
 	$(OBJDUMP) --disassemble $< >$@
 
-%.srec: %.out
+$(PROGRAM).srec: $(PROGRAM).out
 	$(OBJCOPY) -O srec $< $@
 
-%.out: %.o mkl25z4.ld $(BARE_PATH)
-	$(CC) $(CFLAGS) -T mkl25z4.ld -Wl,-Map="$@.map" -o $@ $< $(BARE_PATH)
+$(PROGRAM).bin: $(PROGRAM).out
+	$(OBJCOPY) -O binary $< $@
+
+$(PROGRAM).out: $(OBJECTS) mkl25z4.ld $(BARE_PATH)
+	$(CC) $(CFLAGS) -T $(filter %.ld, $^) -Wl,-Map="$(PROGRAM).map" -o $@ $(filter %.o, $^) $(BARE_PATH)
 
 # -----------------------------------------------------------------------------
 # Burn/deploy by copying to the development board filesystem
-#  Hack:  we identify the board by the filesystem size (128mb)
-DEPLOY_VOLUME = $(shell df -h 2>/dev/null | fgrep " 128M" | awk '{print $$6}')
-deploy: $(EXEC).srec
+#  Hack:  we identify the board by the volume name "MBED"
+DEPLOY_VOLUME = $(shell df -h 2>/dev/null | fgrep "MBED" | awk '{print $$6}')
+deploy: $(PROGRAM).bin
 	dd conv=fsync bs=64k if=$< of=$(DEPLOY_VOLUME)/$<
